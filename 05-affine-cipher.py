@@ -27,8 +27,9 @@ def encrypt(message, a, b):
 
 def decrypt(cipher, a, b):
     message = []
+    a_inv = mod_inv(a, m)
     for c in cipher:
-        message.append(alphabet[mod_inv(a, m) * (alphabet.index(c) - b) % m])
+        message.append(alphabet[a_inv * (alphabet.index(c) - b) % m])
     return "".join(message)
 
 def main():
