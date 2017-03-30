@@ -1,4 +1,6 @@
+from collections import Counter
 import hashlib
+import string
 import subprocess
 
 
@@ -35,3 +37,31 @@ def parse_rsa_public_key(key):
     d = out.find(" (0x")
     e = int(out[c:d])
     return N, e
+
+def frequency_analysis(ciphertext, decrypt, keys):
+    """Find the key in keys whose decryption of the ciphertext most resembles English
+    in letter frequencies.
+    """
+    english = [     # a - z letter frequencies
+        0.08167, 0.01492, 0.02782, 0.04253, 0.12702, 0.02228, 0.02015,
+        0.06094, 0.06966, 0.00153, 0.00772, 0.04025, 0.02406, 0.06749,
+        0.07507, 0.01929, 0.00095, 0.05987, 0.06327, 0.09056, 0.02758,
+        0.00978, 0.02360, 0.00150, 0.01974, 0.00074]
+
+    I_english = sum([p ** 2 for p in english])
+
+    freqs = {" ": 0, ".": 0, ",": 0}
+    for (i, char) in enumerate(string.ascii_lowercase):
+        freqs[char] = english[i]
+    for (i, char) in enumerate(string.ascii_uppercase):
+        freqs[char] = english[i]
+
+    I = []
+    for key in keys:
+        d = decrypt(ciphertext, key)
+        counts = Counter(d)
+        chars = list(counts.keys())
+        total = sum([n for (char, n) in counts.items() if char in freqs])
+        Ij = sum([freqs[char] * n / total for (char, n) in counts.items() if char in freqs])
+        I.append((key, abs(Ij - I_english), len(chars)))
+    return sorted(I, key=lambda x: x[1])

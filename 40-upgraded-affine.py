@@ -2,7 +2,7 @@ import string
 from collections import Counter
 from math import gcd
 
-from utils import mod_inv
+from utils import frequency_analysis, mod_inv
 
 # heavily inspired by 05-affine-cipher.py
 
@@ -40,30 +40,9 @@ test_ct = "e,jqbgnzm.iokx"
 assert encrypt(test_pt, (2, 5), "e") == test_ct
 assert decrypt(encrypt(test_pt, (4, 19), "j"), (4, 19)) == test_pt
 
-# Letter frequency attack
-english = [     # a - z letter frequencies
-    0.08167, 0.01492, 0.02782, 0.04253, 0.12702, 0.02228, 0.02015,
-    0.06094, 0.06966, 0.00153, 0.00772, 0.04025, 0.02406, 0.06749,
-    0.07507, 0.01929, 0.00095, 0.05987, 0.06327, 0.09056, 0.02758,
-    0.00978, 0.02360, 0.00150, 0.01974, 0.00074]
+keys = [(a, b) for a in aa for b in bb]
+results = frequency_analysis(ciphertext, decrypt, keys)
 
-I_english = sum([p ** 2 for p in english])
-
-freqs = {' ': 0, '.': 0, ',': 0}
-for (i, char) in enumerate(string.ascii_lowercase):
-    freqs[char] = english[i]
-
-length = len(ciphertext)
-I = []
-for a in aa:
-    for b in bb:
-        key = (a, b)
-        trial_cipher = decrypt(ciphertext, key)
-        counts = Counter(trial_cipher)
-        Ij = sum([freqs[char] * n / length for (char, n) in counts.items()])
-        I.append((key, abs(Ij - I_english)))
-results = sorted(I, key=lambda x: x[1])
-
-a, b = results[0][0]
-plaintext = decrypt(ciphertext, (a, b))
+key = results[0][0]
+plaintext = decrypt(ciphertext, key)
 print(plaintext)

@@ -1,18 +1,15 @@
 from itertools import cycle
 from importlib import import_module
 
-try:
-    import matplotlib.pyplot as plt
-except ImportError:
-    pass
+import matplotlib.pyplot as plt
+
+from utils import frequency_analysis
 
 caesar = import_module("32-caesar")
 shift_cipher = caesar.shift_cipher
-find_shift = caesar.find_shift
 
-
-def autocorrelation(s, t):
-    """Compute the autocorrelation of s:[int] with delay t:int."""
+def autocorrelation(s: int, t: int):
+    """Compute the autocorrelation of s with delay t."""
     correlation = 0
     for i in range(len(s) - t):
         if s[i] == s[i + t]:
@@ -48,7 +45,7 @@ def decrypt_vigenere(ciphertext, t):
         stream = [ciphertext[j + i * t] for i in range(len(ciphertext) // t)]
         streams.append(stream)
 
-    key_inverse = [find_shift(stream)[0][0] for stream in streams]
+    key_inverse = [frequency_analysis(stream, shift_cipher, range(26))[0][0] for stream in streams]
     key = "".join([chr(ord('A') + (26 - k) % 26) for k in key_inverse])
     message = vigenere_shift(ciphertext, key_inverse)
     return message, key
@@ -56,3 +53,6 @@ def decrypt_vigenere(ciphertext, t):
 
 # find_key_length(ciphertext)
 message, key = decrypt_vigenere(ciphertext, 6)
+
+if __name__ == "__main__":
+    print(message)
